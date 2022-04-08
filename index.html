@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Binti game verson 1.1</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<style>
+
+    body{ 
+        width: 100%;
+        height: 100%;
+        overflow: hidden;  /* hides scrollbars */
+    }
+
+    canvas{
+        background-color: aqua;
+    }
+</style>
+
+<canvas></canvas>
+
+
+
+<script>
+
+    // load images
+    const images = {};
+    images.binti = new Image();
+    images.binti.src = './bintis.png'
+    //const characterActions = ['up', 'top right', 'right', 'down right', 'down']; 
+    const characterActions = ['up',  'right', 'left', 'down', 'down right', 'down left', 'up right', 'up left']; // loads the images for the walking direction in each object
+    const numberOfCharacters = 10;
+    const characters = [];
+
+    const canvas = document.querySelector('canvas');
+    const c = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const bullets = [];
+
+    // binti characters variables for loading image
+    const bintiWidth = 103.0625;
+    const bintiHeight = 113.125;
+    let bintiFrameX = 4;
+    let bintiFrameY = 6;
+    let bintiX = 0;   // where to draw it on the canvas
+    let bintiY = 0;
+    let moveBinti = 6;
+
+
+
+    class Player {
+        constructor(x, y, radius, color) {
+            this.x = x;
+            this.y = y;
+            this.radius = radius;
+            this.color = color;
+            this.movePlayer = 10; // the amount the player moves upon a key press
+        }
+        // moves player
+        updatePlayerPosition(directionKey){
+            if (directionKey === 'KeyS'){
+                this.y += this.movePlayer;
+                if (this.y > canvas.height - player.radius){
+                    this.y = canvas.height - player.radius;
+                }
+            } else if (directionKey === 'KeyW'){
+                this.y -= this.movePlayer;
+                if (this.y < 0 + player.radius){
+                    this.y = 0 + player.radius;
+                }
+            } else if (directionKey === 'KeyD'){
+                this.x += this.movePlayer;
+                if (this.x > canvas.width - player.radius){
+                    this.x = canvas.width - player.radius;
+                }
+            } else if (directionKey === 'KeyA'){
+                this.x -= this.movePlayer;
+                if (this.x < 0 + player.radius){
+                    this.x = 0 + player.radius;
+                }
+            }
+            this.draw()
+        }
+        draw(){
+        c.clearRect(0, 0, canvas.width, canvas.height) // needed to clear the previous drawing so it isnt tracers
+        c.beginPath()
+        c.arc(this.x, this.y, this.radius,
+            0, Math.PI * 2, false);
+            c.fillStyle = this.color;
+            c.fill();
+        }
+    }  // end of player class
+
+
+    class Bullet{
+        constructor(x, y, radius, color, velocity){
+            this.x = x;
+            this.y = y;
+            this.radius = radius;
+            this.color = color;
+            this.velocity = velocity;
+        }
+        draw(){
+        c.beginPath()
+        c.arc(this.x, this.y, this.radius,
+            0, Math.PI * 2, false);
+            c.fillStyle = this.color;
+            c.fill();
+        }
+        update(){
+            this.draw() // draws the individual bullet function
+            this.x = this.x + (this.velocity.x * 4); // speeds up bullets
+            this.y = this.y + (this.velocity.y * 4);
+        }
+    }
+    
+
+
+
+
+
+
+
+
+
+
+// -----------------------------  EVENTLISTENERS ------------------------------------------
+
+    // eventlistener for moving the player with the keyboard
+    window.addEventListener('keydown', function(event) {
+        if (event.defaultPrevented) {
+            return;
+        }
+        if (event.code === 'KeyS'){ 
+            player.updatePlayerPosition('KeyS'); // "down"
+        } else if (event.code === 'KeyW'){
+            player.updatePlayerPosition('KeyW') // 'up'
+        } else if (event.code === 'KeyD'){
+            player.updatePlayerPosition('KeyD') // 'right'
+        } else if (event.code === 'KeyA'){
+            player.updatePlayerPosition('KeyA') // 'left'
+        }
+        event.preventDefault();
+    }, true);
+
+
+
+    // eventlistener for shooting a bullet with the mouse
+    window.addEventListener('click', (event) => {
+        // use atan2 to get corodinates for mouse click
+        // atan2 you need y first
+        const angle = Math.atan2(
+            event.clientY - player.y, // y coordinate
+            event.clientX - player.x  // x coordinate
+        )
+        const velocity = {
+            x: Math.cos(angle),
+            y: Math.sin(angle)
+        }
+        bullets.push(new Bullet(player.x, player.y, 5, 'red', velocity))
+        
+        //event.clientX, event.clientY (mouse points)
+    })
+
+    function drawSprite(img, sX, sY, sW, sH, dX, dY, dW, dH){
+            c.drawImage(img, sX, sY, sW, sH, dX, dY, dW, dH);
+    };
+
+    let animationId;
+    // this animates the bullet till it hits the point along with update
+    function animate(){
+        animationId = requestAnimationFrame(animate)
+        c.clearRect(0, 0, canvas.width, canvas.height)
+                ////////////////---------------
+        // draws the player
+        player.draw()
+        bullets.forEach((bullet) => {
+            bullet.update()
+        })
+        // draw the binti sprite
+        drawSprite(images.binti, bintiWidth * bintiFrameX, bintiHeight * bintiFrameY, bintiWidth, bintiHeight, bintiX, bintiY, bintiWidth, bintiHeight);
+        // animates bintis
+        if (bintiFrameX < 13){
+            bintiFrameX++;
+        } else {
+            bintiFrameX = 3;
+        }
+        // moves bintis
+        if (bintiY < canvas.height){
+            bintiY += moveBinti;
+        } else {
+            bintiY = 0 - bintiY;
+        }       
+    }
+
+    //window.onload = setInterval(animate, 1000/30);
+
+
+
+    // player and center of screen
+    const centerX = canvas.width / 2;  
+    const centerY = canvas.height / 2;
+
+    const player = new Player(centerX, centerY, 30, 'blue');
+    const bullet = new Bullet(
+        player.x,
+        player.y, 
+        5, // radius  
+        'red', 
+        {
+            x: 1,// bullet x speed
+            y: 1 // bullet y speed
+        },
+    )
+
+    player.draw();
+
+    console.log(player);
+    console.log(bullets);
+    console.log(bintiFrameY) //////
+    animate();
+
+    
+
+
+
+
+
+</script>
+</body>
+</html>
