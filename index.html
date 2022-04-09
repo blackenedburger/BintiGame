@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Binti game verson 1.1</title>
+  <title>Binti game verson 1.2</title>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -15,12 +15,28 @@
         overflow: hidden;  /* hides scrollbars */
     }
 
-    canvas{
-        background-color: aqua;
+    .floor{
+    position: absolute;
+    top: -200%;
+    left: -200%;
+    width: 500%;
+    height: 500%;
+    background: url(./Brick_02.png);
+    transform: rotate3d(1,0,1,50deg);
     }
+
+    canvas{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
 </style>
 
-<canvas></canvas>
+<div class="floor"></div>
+<canvas id="canvas"></canvas>
 
 
 
@@ -31,9 +47,9 @@
     images.binti = new Image();
     images.binti.src = './bintis.png'
     //const characterActions = ['up', 'top right', 'right', 'down right', 'down']; 
-    const characterActions = ['up',  'right', 'left', 'down', 'down right', 'down left', 'up right', 'up left']; // loads the images for the walking direction in each object
-    const numberOfCharacters = 10;
-    const characters = [];
+    const bintiActions = ['up',  'right', 'left', 'down', 'down right', 'down left', 'up right', 'up left']; // loads the images for the walking direction in each object
+    const numberOfBintis = 10;
+    const bintis = [];
 
     const canvas = document.querySelector('canvas');
     const c = canvas.getContext('2d');
@@ -121,11 +137,135 @@
     
 
 
-
-
-
-
-
+class Binti{
+    constructor(){ //constructor just creates new instance
+        this.width  = 103.0625; // each frame width and height
+        this.height = 113.125;
+        this.frameX = 3;  // the starting point on the script of pics
+        this.frameY = 3;  // the row on the script
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.speed = (Math.random() * 1.5) + 3;
+        this.action = bintiActions[Math.floor(Math.random() * bintiActions.length)];
+        if (this.action === 'up'){
+            this.frameY = 0;
+            this.maxFrame = 12;
+            this.minFrame = 4;
+        } else if (this.action === 'right'){
+            this.maxFrame = 13;
+            this.minFrame = 3;
+            this.frameY = 3;
+        } else if (this.action === 'down'){ // check if its at bottom
+            this.maxFrame = 12;
+            this.minFrame = 1;
+            this.frameY = 6;
+        } else if (this.action === 'left'){
+            this.maxFrame = 14;
+            this.minFrame = 3;
+            this.frameY = 1;
+        } else if (this.action === 'down right'){
+            this.maxFrame = 12;
+            this.minFrame = 4;
+            this.frameY = 4;
+        } else if (this.action === 'down left'){
+            this.maxFrame = 12;
+            this.minFrame = 4;
+            this.frameY = 4;
+        } else if (this.action === 'up right'){
+            this.maxFrame = 12;
+            this.minFrame = 4;
+            this.frameY = 4;
+        } else if (this.action === 'up left'){
+            this.maxFrame = 12;
+            this.minFrame = 4;
+            this.frameY = 4;
+        }
+    }
+    draw(){
+        drawSprite( // the function needs all this: img, sX, sY, sW, sH, dX, dY, dW, dH, which is as follows:
+            images.binti, 
+            this.width * this.frameX, 
+            this.height * this.frameY, 
+            this.width, 
+            this.height, 
+            this.x, //position on canvas
+            this.y, 
+            this.width, 
+            this.height
+            );
+        // make sprites walk with animation
+        // chekcs x distance and gives correct sprite frame
+        if (this.frameX < this.maxFrame){
+            this.frameX ++;
+        } else {
+            this.frameX = this.minFrame;
+        };
+        
+    }
+    update(){
+        if (this.action === 'right'){
+            if (this.x > canvas.width + this.width){
+                this.x = 0 - this.width; // comes back on the left side of the screen
+                this.y = Math.random() * (canvas.height -  this.height);
+            } else { // resets character after it goes past edge
+                this.x += this.speed;
+            }
+        } else if (this.action === 'left'){
+            if (this.x < 0 - this.width){
+                this.x = canvas.width + this.width;
+                this.y = Math.random() * (canvas.height - this.height);
+            } else {
+                this.x -= this.speed;
+            }
+        } else if (this.action === 'up'){ // if at the top
+            if (this.y < (0 - this.height)){
+                this.y = canvas.height + this.height;
+                this.x = Math.random() * canvas.height;
+            } else {
+                this.y -= this.speed; // else go forward
+            }
+        } else if (this.action === 'down'){ // check if its at bottom
+            if (this.y > 0 + canvas.height){
+                this.y = 0 - this.height;
+                this.x = Math.random() * canvas.height;
+            } else {
+                this.y += this.speed;
+            }
+        } else if (this.action === "down right"){
+            if (this.y > (canvas.height + this.height) && (this.x > this.width + canvas.width)){
+                this.y = 0 - this.height;
+                this.x = Math.random() * canvas.width;
+            } else {
+                this.y += this.speed; // else go forward
+                this.x += this.speed;
+            }
+        } else if (this.action === "down left"){
+            if (this.y > canvas.height && this.x < 0){
+                this.y = 0 - this.height;
+                this.x = Math.random() * canvas.width;
+            } else {
+                this.y += this.speed;
+                this.x -= this.speed;
+            }
+        } else if (this.action === "up right"){
+            if (this.y < 0 && this.x > canvas.width){
+                this.y = this.height + canvas.height;
+                this.x = Math.random() * canvas.width;
+            } else {
+                this.y -= this.speed;
+                this.x += this.speed;
+            }
+        } else if (this.action === "up left"){
+            if (this.y < 0 && (this.x > 0)){
+                this.y = canvas.height + this.height;
+                this.x = Math.random() * canvas.width;
+            } else {
+                this.y -= this.speed; // else go forward
+                this.x -= this.speed;
+            }
+        }
+    }
+}
 
 
 
@@ -167,6 +307,10 @@
         //event.clientX, event.clientY (mouse points)
     })
 
+    for (i = 0; i < numberOfBintis; i ++){
+    bintis.push(new Binti());
+}
+
     function drawSprite(img, sX, sY, sW, sH, dX, dY, dW, dH){
             c.drawImage(img, sX, sY, sW, sH, dX, dY, dW, dH);
     };
@@ -182,20 +326,12 @@
         bullets.forEach((bullet) => {
             bullet.update()
         })
-        // draw the binti sprite
-        drawSprite(images.binti, bintiWidth * bintiFrameX, bintiHeight * bintiFrameY, bintiWidth, bintiHeight, bintiX, bintiY, bintiWidth, bintiHeight);
-        // animates bintis
-        if (bintiFrameX < 13){
-            bintiFrameX++;
-        } else {
-            bintiFrameX = 3;
-        }
-        // moves bintis
-        if (bintiY < canvas.height){
-            bintiY += moveBinti;
-        } else {
-            bintiY = 0 - bintiY;
-        }       
+        //---------------------------------
+        
+        for (i = 0; i < bintis.length; i++){
+            bintis[i].draw();
+            bintis[i].update();
+        }  
     }
 
     //window.onload = setInterval(animate, 1000/30);
@@ -218,11 +354,16 @@
         },
     )
 
+    // stop the canvas from stretching upon resizing
+    window.addEventListener('resize', function(){
+        canvas.height = window.innerHeight;
+        canvas.width = windows.innerWidth;
+    })
     player.draw();
 
     console.log(player);
     console.log(bullets);
-    console.log(bintiFrameY) //////
+    console.log(bintis) //////
     animate();
 
     
